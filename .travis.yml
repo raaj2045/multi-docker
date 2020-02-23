@@ -1,0 +1,22 @@
+language: generic
+sudo: required
+services:
+  - docker
+before_install:
+  - docker build -t raaj2045/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run raaj2045/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t raaj2045/multi-client ./client
+  - docker build -t raaj2045/multi-nginx ./nginx
+  - docker build -t raaj2045/multi-worker ./worker
+  - docker build -t raaj2045/multi-server ./server
+  # Log in to Docker CLi
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take all those images and push them to DOcker Hub
+  - docker push raaj2045/multi-client
+  - docker push raaj2045/multi-nginx
+  - docker push raaj2045/multi-server
+  - docker push raaj2045/multi-worker
